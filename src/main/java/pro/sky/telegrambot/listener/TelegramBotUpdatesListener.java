@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +45,20 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 telegramBot.execute(sendMessage);
             } else if (matcher.matches()){
                String dateStr = matcher.group(1);
-               LocalDateTime execDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+               LocalDateTime execDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
                String message = matcher.group(2);
                NotificationTask task = new NotificationTask();
                task.setChatId(chatId);
                task.setMessage(message);
                task.setExecDate(execDate);
+               repository.save(task);
+               sendMessage(chatId, "Событие сохранено на дату " + execDate);
             }
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
-
+    private SendResponse sendMessage(Long chatId, String message) {
+        SendMessage send = new SendMessage(chatId, message);
+        return telegramBot.execute(send);
+    }
 }
