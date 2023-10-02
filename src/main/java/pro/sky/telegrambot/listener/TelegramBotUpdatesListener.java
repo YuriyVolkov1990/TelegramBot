@@ -24,6 +24,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
     private static Pattern PATTERN = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4} \\d{2}:\\d{2})\\s+(.*)");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     @Autowired
     private TelegramBot telegramBot;
     @Autowired
@@ -43,16 +44,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             if ("/start".equalsIgnoreCase(text)) {
                 SendMessage sendMessage = new SendMessage(chatId, "HI");
                 telegramBot.execute(sendMessage);
-            } else if (matcher.matches()){
-               String dateStr = matcher.group(1);
-               LocalDateTime execDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-               String message = matcher.group(2);
-               NotificationTask task = new NotificationTask();
-               task.setChatId(chatId);
-               task.setMessage(message);
-               task.setExecDate(execDate);
-               repository.save(task);
-               sendMessage(chatId, "Событие сохранено на дату " + execDate);
+            } else if (matcher.matches()) {
+                String dateStr = matcher.group(1);
+                LocalDateTime execDate = LocalDateTime.parse(dateStr, FORMATTER);
+                String message = matcher.group(2);
+                NotificationTask task = new NotificationTask();
+                task.setChatId(chatId);
+                task.setMessage(message);
+                task.setExecDate(execDate);
+                repository.save(task);
+                sendMessage(chatId, "Событие сохранено на дату " + execDate);
             }
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
